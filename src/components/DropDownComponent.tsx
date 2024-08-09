@@ -23,10 +23,10 @@ function DropdownMenuCheckboxes({ newChart }: DropdownMenuCheckboxesProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">Open</Button>
+        <Button variant="outline">Add Chart</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="min-w-[500px] max-w-[500px]">
-        <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+        <DropdownMenuLabel>Select Chart Type</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <div className="flex flex-wrap">
           {btnArray.map((item: BtnArrayItemType, index: number) => (

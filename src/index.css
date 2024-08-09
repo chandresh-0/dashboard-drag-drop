@@ -67,6 +67,10 @@
     @apply bg-background text-foreground;
   }
 }
-.test-block > div {
-  display: inline-block;
+.no-select{
+
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
