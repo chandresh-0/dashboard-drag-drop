@@ -22,9 +22,8 @@ function App() {
         {layoutsKeys.map((id, index) => (
           <div
             key={id}
-            className="border m-2 hover:cursor-move p-5 "
+            className="border hover:cursor-move p-5 "
           >
-            {id}
             {id == "l1" ? <BarComponent /> : <PieComponent />}
           </div>
         ))}

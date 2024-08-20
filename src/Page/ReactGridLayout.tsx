@@ -65,8 +65,12 @@ const layouts = {
     { i: "r3", x: 0, y: 0, w: 2, h: 2 },
   ],
 };
-const ReactGridLayout = ({ children }) => {
-  return <PageLayout layouts={layouts}>{children}</PageLayout>;
+const ReactGridLayout = ({ children }: { children: any }) => {
+  return (
+    <PageLayout layouts={layouts}>
+      {children}
+    </PageLayout>
+  );
 };
 
 export default ReactGridLayout;
