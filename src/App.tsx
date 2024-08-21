@@ -3,7 +3,7 @@ import { BarComponent } from "./Charts/Bar";
 import { PieComponent } from "./Charts/Pie";
 import ReactGridLayout from "./Page/ReactGridLayout";
 import DropdownMenuCheckboxes from "./components/DropDownComponent";
-import { BreadcrumbResponsive } from "./components/Breadcrumb";
+import { DashboardHeader } from "./components/dashboardHeader";
 function App() {
   const layoutsKeys = ["l1", "m1", "m2", "r1", "l2", "m3", "r2"];
   const generateRandomVariableName = () => {
@@ -18,7 +18,7 @@ function App() {
   };
   return (
     <>
-      <BreadcrumbResponsive></BreadcrumbResponsive>
+      <DashboardHeader></DashboardHeader>
       <DropdownMenuCheckboxes newChart={newTickets} />
       <ReactGridLayout>
         {layoutsKeys.map((id, index) => (
