@@ -17,8 +17,26 @@ interface PageLayoutProps {
   children?: React.ReactNode;
 }
 
+const calculateBreakpoint = () => {
+  const viewportWidth = window.innerWidth;
+  switch (true) {
+    case (viewportWidth > 1600):
+      return 'xxl';
+    case (viewportWidth > 1200 && viewportWidth <= 1600):
+      return 'xl';
+    case (viewportWidth > 992 && viewportWidth <= 1200):
+      return 'lg';
+    case (viewportWidth > 768 && viewportWidth <= 992):
+      return 'md';
+    case (viewportWidth > 576 && viewportWidth <= 768):
+      return 'sm';
+    case (viewportWidth <= 576):
+      return 'xs';
+  }
+}
+
 const PageLayout = (props: PageLayoutProps) => {
-  const [currentBreakPoint, setCurrentBreakPoint] = React.useState("");
+  const [currentBreakPoint, setCurrentBreakPoint] = React.useState(calculateBreakpoint());
 
   const defaultProps = useMemo(
     () => ({
@@ -45,16 +63,17 @@ const PageLayout = (props: PageLayoutProps) => {
       backgroundSize: `${cellWidth} ${defaultProps.rowHeight}px`,
     };
   }, [currentBreakPoint, defaultProps.cols, defaultProps.rowHeight]);
-
   return (
+    <>
     <ResponsiveGridLayout
       {...defaultProps}
       {...props}
       style={gridStyle}
-    >
+      >
       {props.children}
       <Button>Close</Button>
     </ResponsiveGridLayout>
+      </>
   );
 };
 
