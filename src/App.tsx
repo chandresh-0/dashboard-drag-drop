@@ -3,6 +3,8 @@ import { BarComponent } from "./Charts/Bar";
 import { PieComponent } from "./Charts/Pie";
 import ReactGridLayout from "./Page/ReactGridLayout";
 import DropdownMenuCheckboxes from "./components/DropDownComponent";
+import { DashboardHeader } from "./components/DashboardHeader";
+import { EditDatatable } from "./components/DatatableEditSwitch";
 function App() {
   const layoutsKeys = ["l1", "m1", "m2", "r1", "l2", "m3", "r2"];
   const generateRandomVariableName = () => {
@@ -17,6 +19,8 @@ function App() {
   };
   return (
     <>
+      <DashboardHeader></DashboardHeader>
+      <EditDatatable></EditDatatable>
       <DropdownMenuCheckboxes newChart={newTickets} />
       <ReactGridLayout>
         {layoutsKeys.map((id, index) => (
