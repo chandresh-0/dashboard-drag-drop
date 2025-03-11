@@ -10,15 +10,22 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 interface DropdownMenuCheckboxesProps {
-  newChart: () => void;
+  newChart: (chartType: string) => void;
 }
 interface BtnArrayItemType {
   label: string;
+  value: string;
 }
 function DropdownMenuCheckboxes({ newChart }: DropdownMenuCheckboxesProps) {
   const [btnArray] = useState<BtnArrayItemType[]>([
-    { label: "Add Bar" },
-    { label: "Add Pie Chart" },
+    { label: "Add Bar", value: "bar" },
+    { label: "Add Pie ", value: "pie" },
+    { label: "Add Line ", value: "line" },
+    { label: "Add Stack Column", value: "stackColumn" },
+    { label: "Add Donut", value: "donut" },
+    { label: "Add Semi Donut", value: "semiDonut" },
+    { label: "Add Bar Race", value: "barRace" },
+    { label: "Add Heat Map", value: "heatMap" },
   ]);
   return (
     <DropdownMenu>
@@ -32,7 +39,7 @@ function DropdownMenuCheckboxes({ newChart }: DropdownMenuCheckboxesProps) {
           {btnArray.map((item: BtnArrayItemType, index: number) => (
             <DropdownMenuItem
               className="w-1/2"
-              onClick={newChart}
+              onClick={() => newChart(item.value)}
               key={index}
             >
               <Button

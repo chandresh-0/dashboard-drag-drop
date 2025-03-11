@@ -67,8 +67,7 @@
     @apply bg-background text-foreground;
   }
 }
-.no-select{
-
+.no-select {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -77,12 +76,13 @@
 /* grid css */
 .layout {
   background-color: #f0f0f0;
-  background-image: 
-    linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+  background-image: linear-gradient(to right, #e0e0e0 1px, transparent 1px),
     linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
 }
 /* draggable css */
 .react-grid-item.react-grid-placeholder {
   background-color: blue !important;
-
+}
+.react-grid-item.react-grid-placeholder > div {
+  z-index: 11 !important;
 }

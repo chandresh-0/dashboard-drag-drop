@@ -12,9 +12,19 @@ interface PageLayoutProps {
   breakpoints?: Record<string, number>;
   cols?: Record<string, number>;
   rowHeight?: number;
-  margin?: number[];
-  containerPadding?: number[];
+  margin?: [number, number];
+  containerPadding?: [number, number];
   children?: React.ReactNode;
+  layouts?: {
+    [key: string]: Array<{
+      i: string;
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+      static?: boolean;
+    }>;
+  };
 }
 
 const PageLayout = (props: PageLayoutProps) => {
@@ -22,16 +32,22 @@ const PageLayout = (props: PageLayoutProps) => {
 
   const defaultProps = useMemo(
     () => ({
+      autoSize: true,
       className: "layout no-select",
       isDraggable: true,
       isResizable: true,
+      draggableHandle: ".drag-handle",
       breakpoints: { xxl: 1600, xl: 1200, lg: 992, md: 768, sm: 576, xs: 480 },
-      cols: { xxl: 16, xl: 10, lg: 8, md: 6, sm: 4, xs: 2 },
+      cols: { xxl: 16, xl: 12, lg: 8, md: 6, sm: 4, xs: 2 },
       rowHeight: 140,
-      margin: [0, 0],
-      containerPadding: [0, 0],
+      margin: [0, 0] as [number, number],
+      containerPadding: [0, 0] as [number, number],
       isBounded: true,
       onBreakpointChange: setCurrentBreakPoint,
+      onResizeStop: () => {
+        // Trigger a window resize event to make charts re-render
+        window.dispatchEvent(new Event("resize"));
+      },
     }),
     [],
   );
@@ -53,7 +69,6 @@ const PageLayout = (props: PageLayoutProps) => {
       style={gridStyle}
     >
       {props.children}
-      <Button>Close</Button>
     </ResponsiveGridLayout>
   );
 };
