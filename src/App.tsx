@@ -3,10 +3,11 @@ import ReactGridLayout from "./Page/ReactGridLayout";
 import HeaderTabs from "./components/HeaderTabs";
 import Echarts from "./Charts/echarts";
 import * as ChartsConfig from "./utils/charts";
-import { GripVertical } from "lucide-react";
+import { GripVertical, X } from "lucide-react";
 import { generateResponsiveGridLayout } from "@/utils/generateLayout";
 import { useState, useEffect, useMemo } from "react";
 import DropdownMenuCheckboxes from "./components/DropDownComponent";
+import { useLayoutStore } from "./store/layoutStore";
 
 interface Tab {
   name: string;
@@ -33,21 +34,13 @@ interface Layouts {
 }
 
 function App() {
-  const [layoutsKeys, setLayoutsKeys] = useState<number[]>([]);
-  const [layout, setLayout] = useState<Layouts>({
-    xxl: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-    xl: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-    lg: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-    md: [{ i: "0", x: 0, y: 0, w: 3, h: 3, chartType: "bar" }],
-    sm: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-    xs: [{ i: "0", x: 0, y: 0, w: 2, h: 3, chartType: "bar" }],
-  });
+  const { layouts, layoutKeys, updateLayouts, addChart, deleteChart } =
+    useLayoutStore();
 
   const getChartConfig = useMemo(
     () => (id: number) => {
-      if (!layout.xxl[id]) return ChartsConfig.barOptions;
-      console.log();
-      switch (layout.xxl[id].chartType) {
+      const chartType = layouts.xxl[id]?.chartType;
+      switch (chartType) {
         case "line":
           return ChartsConfig.lineOptions;
         case "stackColumn":
@@ -66,7 +59,7 @@ function App() {
           return ChartsConfig.barOptions;
       }
     },
-    [layout.xxl],
+    [layouts.xxl],
   );
 
   const [activeTab, setActiveTab] = useState<Tab | null>(null);
@@ -82,18 +75,17 @@ function App() {
     { name: "Billing", id: "3", value: "billing" },
   ];
   const addNewCharts = (chartType: string) => {
-    const newId = layout.xxl.length;
-    debugger;
-    const newLayout = generateResponsiveGridLayout(1, chartType, String(newId));
-    setLayoutsKeys((prev) => [...prev, newId]);
-    setLayout((prev) => ({
-      xxl: [...prev.xxl, ...newLayout.xxl],
-      xl: [...prev.xl, ...newLayout.xl],
-      lg: [...prev.lg, ...newLayout.lg],
-      md: [...prev.md, ...newLayout.md],
-      sm: [...prev.sm, ...newLayout.sm],
-      xs: [...prev.xs, ...newLayout.xs],
-    }));
+    const newId = layouts.xxl.length;
+    const newLayout = generateResponsiveGridLayout(
+      newId,
+      chartType,
+      String(newId),
+    );
+    addChart(chartType, newLayout);
+  };
+
+  const onLayoutChange = (_: LayoutItem[], allLayouts: Layouts) => {
+    updateLayouts(allLayouts);
   };
 
   return (
@@ -105,17 +97,29 @@ function App() {
         />
         <DropdownMenuCheckboxes newChart={addNewCharts} />
       </div>
-      {JSON.stringify(layout)}
-      <ReactGridLayout layouts={layout}>
-        {layoutsKeys.map((id) => (
+      <ReactGridLayout
+        layouts={layouts}
+        onLayoutChange={onLayoutChange}
+      >
+        {layoutKeys.map((id) => (
           <div
             key={id}
             className={`p-2 relative group rounded-lg shadow-lg`}
           >
-            <div className="absolute top-4 left-3 z-[11] cursor-move text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-gray-800 drag-handle">
-              <GripVertical />
+            <div className="absolute top-4 left-3 z-[11] flex gap-2">
+              <div className="cursor-move text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-gray-800 drag-handle">
+                <GripVertical />
+              </div>
             </div>
-
+            <div className="absolute top-4 right-4 z-[11] flex gap-2">
+              <button
+                onClick={() => deleteChart(String(id))}
+                className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                aria-label="Delete chart"
+              >
+                <X size={16} />
+              </button>
+            </div>
             <Echarts option={getChartConfig(id)} />
           </div>
         ))}

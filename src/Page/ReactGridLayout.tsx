@@ -3,14 +3,25 @@ import PageLayout from "../components/PageLayout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 
+interface ReactGridLayoutProps {
+  children: React.ReactNode;
+  layouts: any;
+  onLayoutChange?: (layout: any, layouts: any) => void;
+}
+
 const ReactGridLayout = ({
   children,
   layouts,
-}: {
-  children: any;
-  layouts: any;
-}) => {
-  return <PageLayout layouts={layouts}>{children}</PageLayout>;
+  onLayoutChange,
+}: ReactGridLayoutProps) => {
+  return (
+    <PageLayout
+      layouts={layouts}
+      onLayoutChange={onLayoutChange}
+    >
+      {children}
+    </PageLayout>
+  );
 };
 
 export default ReactGridLayout;

@@ -25,6 +25,7 @@ interface PageLayoutProps {
       static?: boolean;
     }>;
   };
+  onLayoutChange?: (layout: any, layouts: any) => void;
 }
 
 const PageLayout = (props: PageLayoutProps) => {
@@ -48,8 +49,9 @@ const PageLayout = (props: PageLayoutProps) => {
         // Trigger a window resize event to make charts re-render
         window.dispatchEvent(new Event("resize"));
       },
+      onLayoutChange: props.onLayoutChange,
     }),
-    [],
+    [props.onLayoutChange],
   );
 
   const gridStyle = useMemo(() => {

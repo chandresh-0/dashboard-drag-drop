@@ -5,58 +5,17 @@
  * @param {string} chartType - The type of chart to use for all items
  * @return {Object} Object with layouts for different breakpoints
  */
-export function generateResponsiveGridLayout(
-  count: number,
+export const generateResponsiveGridLayout = (
+  index: number,
   chartType: string,
   id: string,
-) {
-  const generateGrid = (cols: number, rowHeight: number) => {
-    const layout = [];
-    let x = 0,
-      y = 0;
-
-    for (let i = 1; i <= count; i++) {
-      layout.push({ i: id, x, y, w: 4, h: 3, chartType });
-      x += 4;
-      if (x > cols) {
-        x = 0;
-        y += rowHeight;
-      }
-    }
-    return layout;
-  };
-
-  const generateTwoColumnGrid = () => {
-    const layout = [];
-    let x = 0,
-      y = 0;
-
-    for (let i = 1; i <= count; i++) {
-      layout.push({ i: id, x, y, w: 4, h: 3, chartType });
-      x = x === 0 ? 4 : 0;
-      if (i % 2 === 0) y += 2;
-    }
-    return layout;
-  };
-
-  const generateStackedGrid = (width = 2) => {
-    const layout = [];
-    let y = 0;
-
-    for (let i = 1; i <= count; i++) {
-      let h = i % 2 === 1 ? 3 : 2;
-      layout.push({ i: id, x: 0, y, w: width, h, chartType });
-      y += h;
-    }
-    return layout;
-  };
-
+) => {
   return {
-    xxl: generateGrid(12, 4),
-    xl: generateGrid(12, 4),
-    lg: generateTwoColumnGrid(),
-    md: generateStackedGrid(3).slice(0, count),
-    sm: generateStackedGrid(4),
-    xs: generateStackedGrid(2),
+    xxl: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType }],
+    xl: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType }],
+    lg: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType }],
+    md: [{ i: id, x: 0, y: 0, w: 3, h: 3, chartType }],
+    sm: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType }],
+    xs: [{ i: id, x: 0, y: 0, w: 2, h: 3, chartType }],
   };
-}
+};
