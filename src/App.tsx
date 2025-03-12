@@ -5,7 +5,7 @@ import Echarts from "./Charts/echarts";
 import * as ChartsConfig from "./utils/charts";
 import { GripVertical, X } from "lucide-react";
 import { generateResponsiveGridLayout } from "@/utils/generateLayout";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import DropdownMenuCheckboxes from "./components/DropDownComponent";
 import { useLayoutStore } from "./store/layoutStore";
 
@@ -33,13 +33,19 @@ interface Layouts {
   xs: LayoutItem[];
 }
 
+interface RefType {
+  resize: () => void;
+}
+
 function App() {
   const { layouts, layoutKeys, updateLayouts, addChart, deleteChart } =
     useLayoutStore();
-
+  const chartRef = useRef<RefType>(null);
   const getChartConfig = useMemo(
     () => (id: number) => {
-      const chartType = layouts.xxl[id]?.chartType;
+      const chartType = layouts.xxl.find(
+        (res) => res.i === String(id),
+      )?.chartType;
       switch (chartType) {
         case "line":
           return ChartsConfig.lineOptions;
@@ -81,11 +87,15 @@ function App() {
       chartType,
       String(newId),
     );
+
     addChart(chartType, newLayout);
   };
 
   const onLayoutChange = (_: LayoutItem[], allLayouts: Layouts) => {
     updateLayouts(allLayouts);
+    if (chartRef.current) {
+      chartRef.current.resize();
+    }
   };
 
   return (
@@ -97,7 +107,6 @@ function App() {
         />
         <DropdownMenuCheckboxes newChart={addNewCharts} />
       </div>
-      {JSON.stringify(layouts)}
       <ReactGridLayout
         layouts={layouts}
         onLayoutChange={onLayoutChange}
@@ -121,7 +130,10 @@ function App() {
                 <X size={16} />
               </button>
             </div>
-            <Echarts option={getChartConfig(id)} />
+            <Echarts
+              option={getChartConfig(id)}
+              ref={chartRef}
+            />
           </div>
         ))}
       </ReactGridLayout>

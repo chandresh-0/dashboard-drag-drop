@@ -1,35 +1,42 @@
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import * as echarts from "echarts";
 
-const EChart = ({ option }: { option: any }) => {
-  const chartRef = useRef(null);
+interface EchartProps {
+  option: any;
+}
+interface RefType {
+  resize: () => void;
+}
+
+const EChart = forwardRef<RefType, EchartProps>((props, ref) => {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartInstance = useRef<echarts.EChartsType | null>(null);
+  const { option } = props;
 
   useEffect(() => {
     if (!chartRef.current) return;
 
-    const myChart = echarts.init(chartRef.current);
-    myChart.setOption(option);
+    // Initialize chart
+    chartInstance.current = echarts.init(chartRef.current);
+    chartInstance.current.setOption(option);
 
     const handleResize = () => {
-      myChart.resize();
+      chartInstance.current?.resize();
     };
 
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
-      myChart.dispose();
+      chartInstance.current?.dispose();
     };
   }, [option]);
 
-  useEffect(() => {
-    if (chartRef.current) {
-      const myChart = echarts.init(chartRef.current);
-      myChart.setOption(option);
-      setTimeout(() => {
-        myChart.resize();
-      }, 1000);
-    }
-  }, [option]);
+  // ✅ Exposing the `resize` function to parent
+  useImperativeHandle(ref, () => ({
+    resize() {
+      chartInstance.current?.resize();
+    },
+  }));
 
   return (
     <div
@@ -38,6 +45,6 @@ const EChart = ({ option }: { option: any }) => {
       style={{ width: "100%", height: "100%" }}
     />
   );
-};
+});
 
 export default EChart;

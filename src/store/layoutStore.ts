@@ -41,12 +41,9 @@ const initialLayout: Layouts = {
 // Helper function to create chart type map
 const createChartTypeMap = (layouts: Layouts): Record<string, string> => {
   const chartTypes: Record<string, string> = {};
-  (Object.keys(layouts) as BreakPoint[]).forEach((breakpoint) => {
-    layouts[breakpoint].forEach((item) => {
-      if (!chartTypes[item.i]) {
-        chartTypes[item.i] = item.chartType;
-      }
-    });
+  // Use xxl as the source of truth for chart types
+  layouts.xxl.forEach((item) => {
+    chartTypes[item.i] = item.chartType;
   });
   return chartTypes;
 };
@@ -67,7 +64,7 @@ export const useLayoutStore = create<LayoutStore>()(
             acc[breakpoint] = newLayouts[breakpoint].map(
               (item: LayoutItem) => ({
                 ...item,
-                chartType: chartTypes[item.i] || item.chartType,
+                chartType: chartTypes[item.i] || item.chartType || "bar",
               }),
             );
             return acc;
@@ -78,19 +75,34 @@ export const useLayoutStore = create<LayoutStore>()(
 
       deleteChart: (chartId: string) =>
         set((state) => {
+          // Store the chart types before deletion
           const chartTypes = createChartTypeMap(state.layouts);
 
-          const newLayouts = (
-            Object.keys(state.layouts) as BreakPoint[]
-          ).reduce((acc, breakpoint) => {
-            acc[breakpoint] = state.layouts[breakpoint]
-              .filter((item) => item.i !== chartId)
-              .map((item) => ({
-                ...item,
-                chartType: chartTypes[item.i],
-              }));
-            return acc;
-          }, {} as Layouts);
+          // Explicitly delete from all breakpoints
+          const newLayouts: Layouts = {
+            xxl: state.layouts.xxl.filter((item) => item.i !== chartId),
+            xl: state.layouts.xl.filter((item) => item.i !== chartId),
+            lg: state.layouts.lg.filter((item) => item.i !== chartId),
+            md: state.layouts.md.filter((item) => item.i !== chartId),
+            sm: state.layouts.sm.filter((item) => item.i !== chartId),
+            xs: state.layouts.xs.filter((item) => item.i !== chartId),
+          };
+
+          // Preserve chart types for remaining items
+          const breakpoints: BreakPoint[] = [
+            "xxl",
+            "xl",
+            "lg",
+            "md",
+            "sm",
+            "xs",
+          ];
+          breakpoints.forEach((breakpoint) => {
+            newLayouts[breakpoint] = newLayouts[breakpoint].map((item) => ({
+              ...item,
+              chartType: chartTypes[item.i] || item.chartType || "bar",
+            }));
+          });
 
           return {
             layoutKeys: state.layoutKeys.filter(
@@ -103,15 +115,26 @@ export const useLayoutStore = create<LayoutStore>()(
       addChart: (chartType, newLayout) =>
         set((state) => {
           const newId = Math.max(...state.layoutKeys, -1) + 1;
+          // Ensure the new layout has the correct chart type
+          const layoutWithType = (
+            Object.keys(newLayout) as BreakPoint[]
+          ).reduce((acc, breakpoint) => {
+            acc[breakpoint] = newLayout[breakpoint].map((item) => ({
+              ...item,
+              chartType, // Ensure the new chart gets the correct type
+            }));
+            return acc;
+          }, {} as Layouts);
+
           return {
             layoutKeys: [...state.layoutKeys, newId],
             layouts: {
-              xxl: [...state.layouts.xxl, ...newLayout.xxl],
-              xl: [...state.layouts.xl, ...newLayout.xl],
-              lg: [...state.layouts.lg, ...newLayout.lg],
-              md: [...state.layouts.md, ...newLayout.md],
-              sm: [...state.layouts.sm, ...newLayout.sm],
-              xs: [...state.layouts.xs, ...newLayout.xs],
+              xxl: [...state.layouts.xxl, ...layoutWithType.xxl],
+              xl: [...state.layouts.xl, ...layoutWithType.xl],
+              lg: [...state.layouts.lg, ...layoutWithType.lg],
+              md: [...state.layouts.md, ...layoutWithType.md],
+              sm: [...state.layouts.sm, ...layoutWithType.sm],
+              xs: [...state.layouts.xs, ...layoutWithType.xs],
             },
           };
         }),
