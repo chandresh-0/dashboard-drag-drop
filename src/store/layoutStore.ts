@@ -19,6 +19,8 @@ interface Layouts {
   xs: LayoutItem[];
 }
 
+type BreakPoint = keyof Layouts;
+
 interface LayoutStore {
   layouts: Layouts;
   layoutKeys: number[];
@@ -27,57 +29,68 @@ interface LayoutStore {
   deleteChart: (chartId: string) => void;
 }
 
+const initialLayout: Layouts = {
+  xxl: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
+  xl: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
+  lg: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
+  md: [{ i: "0", x: 0, y: 0, w: 3, h: 3, chartType: "bar" }],
+  sm: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
+  xs: [{ i: "0", x: 0, y: 0, w: 2, h: 3, chartType: "bar" }],
+};
+
+// Helper function to create chart type map
+const createChartTypeMap = (layouts: Layouts): Record<string, string> => {
+  const chartTypes: Record<string, string> = {};
+  (Object.keys(layouts) as BreakPoint[]).forEach((breakpoint) => {
+    layouts[breakpoint].forEach((item) => {
+      if (!chartTypes[item.i]) {
+        chartTypes[item.i] = item.chartType;
+      }
+    });
+  });
+  return chartTypes;
+};
+
 export const useLayoutStore = create<LayoutStore>()(
   persist(
-    (set, get) => ({
-      layouts: {
-        xxl: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-        xl: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-        lg: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-        md: [{ i: "0", x: 0, y: 0, w: 3, h: 3, chartType: "bar" }],
-        sm: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-        xs: [{ i: "0", x: 0, y: 0, w: 2, h: 3, chartType: "bar" }],
-      },
+    (set) => ({
+      layouts: initialLayout,
       layoutKeys: [0],
 
       updateLayouts: (newLayouts) =>
         set((state) => {
-          const updatedLayouts = Object.keys(newLayouts).reduce(
-            (acc, breakpoint) => {
-              acc[breakpoint] = newLayouts[breakpoint].map((item) => ({
+          const chartTypes = createChartTypeMap(state.layouts);
+
+          const updatedLayouts = (
+            Object.keys(newLayouts) as BreakPoint[]
+          ).reduce((acc, breakpoint) => {
+            acc[breakpoint] = newLayouts[breakpoint].map(
+              (item: LayoutItem) => ({
                 ...item,
-                chartType:
-                  state.layouts[breakpoint].find(
-                    (existing) => existing.i === item.i,
-                  )?.chartType ||
-                  item.chartType ||
-                  "bar",
-              }));
-              return acc;
-            },
-            {} as Layouts,
-          );
+                chartType: chartTypes[item.i] || item.chartType,
+              }),
+            );
+            return acc;
+          }, {} as Layouts);
 
           return { layouts: updatedLayouts };
         }),
 
       deleteChart: (chartId: string) =>
         set((state) => {
-          const newLayouts = Object.keys(state.layouts).reduce(
-            (acc, breakpoint) => {
-              acc[breakpoint] = state.layouts[breakpoint]
-                .filter((item) => item.i !== chartId)
-                .map((item) => ({
-                  ...item,
-                  chartType:
-                    state.layouts[breakpoint].find(
-                      (existing) => existing.i === item.i,
-                    )?.chartType || item.chartType,
-                }));
-              return acc;
-            },
-            {} as Layouts,
-          );
+          const chartTypes = createChartTypeMap(state.layouts);
+
+          const newLayouts = (
+            Object.keys(state.layouts) as BreakPoint[]
+          ).reduce((acc, breakpoint) => {
+            acc[breakpoint] = state.layouts[breakpoint]
+              .filter((item) => item.i !== chartId)
+              .map((item) => ({
+                ...item,
+                chartType: chartTypes[item.i],
+              }));
+            return acc;
+          }, {} as Layouts);
 
           return {
             layoutKeys: state.layoutKeys.filter(
@@ -89,7 +102,7 @@ export const useLayoutStore = create<LayoutStore>()(
 
       addChart: (chartType, newLayout) =>
         set((state) => {
-          const newId = state.layouts.xxl.length;
+          const newId = Math.max(...state.layoutKeys, -1) + 1;
           return {
             layoutKeys: [...state.layoutKeys, newId],
             layouts: {

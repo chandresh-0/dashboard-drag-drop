@@ -97,6 +97,7 @@ function App() {
         />
         <DropdownMenuCheckboxes newChart={addNewCharts} />
       </div>
+      {JSON.stringify(layouts)}
       <ReactGridLayout
         layouts={layouts}
         onLayoutChange={onLayoutChange}
@@ -104,7 +105,7 @@ function App() {
         {layoutKeys.map((id) => (
           <div
             key={id}
-            className={`p-2 relative group rounded-lg shadow-lg`}
+            className={`p-2 relative group rounded-lg shadow-md`}
           >
             <div className="absolute top-4 left-3 z-[11] flex gap-2">
               <div className="cursor-move text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:text-gray-800 drag-handle">
