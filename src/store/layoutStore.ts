@@ -8,6 +8,8 @@ interface LayoutItem {
   w: number;
   h: number;
   chartType: string;
+  minW: number;
+  minH: number;
 }
 
 interface Layouts {
@@ -21,21 +23,57 @@ interface Layouts {
 
 type BreakPoint = keyof Layouts;
 
+interface TabLayouts {
+  [tabId: string]: {
+    layouts: Layouts;
+    layoutKeys: number[];
+  };
+}
+
 interface LayoutStore {
-  layouts: Layouts;
-  layoutKeys: number[];
+  activeTab: string;
+  tabLayouts: TabLayouts;
+  setActiveTab: (tabId: string) => void;
   updateLayouts: (newLayouts: Layouts) => void;
   addChart: (chartType: string, newLayout: Layouts) => void;
   deleteChart: (chartId: string) => void;
 }
 
-const initialLayout: Layouts = {
-  xxl: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-  xl: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-  lg: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-  md: [{ i: "0", x: 0, y: 0, w: 3, h: 3, chartType: "bar" }],
-  sm: [{ i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar" }],
-  xs: [{ i: "0", x: 0, y: 0, w: 2, h: 3, chartType: "bar" }],
+const defaultLayout: Layouts = {
+  xxl: [],
+  xl: [],
+  lg: [],
+  md: [],
+  sm: [],
+  xs: [],
+};
+
+const initialTabLayouts: TabLayouts = {
+  "1": {
+    layouts: {
+      xxl: [
+        { i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar", minW: 2, minH: 2 },
+      ],
+      xl: [
+        { i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar", minW: 2, minH: 2 },
+      ],
+      lg: [
+        { i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar", minW: 2, minH: 2 },
+      ],
+      md: [
+        { i: "0", x: 0, y: 0, w: 3, h: 3, chartType: "bar", minW: 2, minH: 2 },
+      ],
+      sm: [
+        { i: "0", x: 0, y: 0, w: 4, h: 3, chartType: "bar", minW: 2, minH: 2 },
+      ],
+      xs: [
+        { i: "0", x: 0, y: 0, w: 2, h: 3, chartType: "bar", minW: 2, minH: 2 },
+      ],
+    },
+    layoutKeys: [0],
+  },
+  "2": { layouts: defaultLayout, layoutKeys: [] },
+  "3": { layouts: defaultLayout, layoutKeys: [] },
 };
 
 // Helper function to create chart type map
@@ -51,12 +89,19 @@ const createChartTypeMap = (layouts: Layouts): Record<string, string> => {
 export const useLayoutStore = create<LayoutStore>()(
   persist(
     (set) => ({
-      layouts: initialLayout,
-      layoutKeys: [0],
+      activeTab: "1",
+      tabLayouts: initialTabLayouts,
+
+      setActiveTab: (tabId: string) =>
+        set(() => ({
+          activeTab: tabId,
+        })),
 
       updateLayouts: (newLayouts) =>
         set((state) => {
-          const chartTypes = createChartTypeMap(state.layouts);
+          const currentTab = state.activeTab;
+          const currentLayouts = state.tabLayouts[currentTab].layouts;
+          const chartTypes = createChartTypeMap(currentLayouts);
 
           const updatedLayouts = (
             Object.keys(newLayouts) as BreakPoint[]
@@ -70,25 +115,44 @@ export const useLayoutStore = create<LayoutStore>()(
             return acc;
           }, {} as Layouts);
 
-          return { layouts: updatedLayouts };
+          return {
+            tabLayouts: {
+              ...state.tabLayouts,
+              [currentTab]: {
+                ...state.tabLayouts[currentTab],
+                layouts: updatedLayouts,
+              },
+            },
+          };
         }),
 
       deleteChart: (chartId: string) =>
         set((state) => {
-          // Store the chart types before deletion
-          const chartTypes = createChartTypeMap(state.layouts);
+          const currentTab = state.activeTab;
+          const currentTabLayout = state.tabLayouts[currentTab];
+          const chartTypes = createChartTypeMap(currentTabLayout.layouts);
 
-          // Explicitly delete from all breakpoints
           const newLayouts: Layouts = {
-            xxl: state.layouts.xxl.filter((item) => item.i !== chartId),
-            xl: state.layouts.xl.filter((item) => item.i !== chartId),
-            lg: state.layouts.lg.filter((item) => item.i !== chartId),
-            md: state.layouts.md.filter((item) => item.i !== chartId),
-            sm: state.layouts.sm.filter((item) => item.i !== chartId),
-            xs: state.layouts.xs.filter((item) => item.i !== chartId),
+            xxl: currentTabLayout.layouts.xxl.filter(
+              (item) => item.i !== chartId,
+            ),
+            xl: currentTabLayout.layouts.xl.filter(
+              (item) => item.i !== chartId,
+            ),
+            lg: currentTabLayout.layouts.lg.filter(
+              (item) => item.i !== chartId,
+            ),
+            md: currentTabLayout.layouts.md.filter(
+              (item) => item.i !== chartId,
+            ),
+            sm: currentTabLayout.layouts.sm.filter(
+              (item) => item.i !== chartId,
+            ),
+            xs: currentTabLayout.layouts.xs.filter(
+              (item) => item.i !== chartId,
+            ),
           };
 
-          // Preserve chart types for remaining items
           const breakpoints: BreakPoint[] = [
             "xxl",
             "xl",
@@ -105,36 +169,48 @@ export const useLayoutStore = create<LayoutStore>()(
           });
 
           return {
-            layoutKeys: state.layoutKeys.filter(
-              (key) => key !== parseInt(chartId),
-            ),
-            layouts: newLayouts,
+            tabLayouts: {
+              ...state.tabLayouts,
+              [currentTab]: {
+                layouts: newLayouts,
+                layoutKeys: currentTabLayout.layoutKeys.filter(
+                  (key) => key !== parseInt(chartId),
+                ),
+              },
+            },
           };
         }),
 
       addChart: (chartType, newLayout) =>
         set((state) => {
-          const newId = Math.max(...state.layoutKeys, -1) + 1;
-          // Ensure the new layout has the correct chart type
+          const currentTab = state.activeTab;
+          const currentTabLayout = state.tabLayouts[currentTab];
+          const newId = Math.max(...currentTabLayout.layoutKeys, -1) + 1;
+
           const layoutWithType = (
             Object.keys(newLayout) as BreakPoint[]
           ).reduce((acc, breakpoint) => {
             acc[breakpoint] = newLayout[breakpoint].map((item) => ({
               ...item,
-              chartType, // Ensure the new chart gets the correct type
+              chartType,
             }));
             return acc;
           }, {} as Layouts);
 
           return {
-            layoutKeys: [...state.layoutKeys, newId],
-            layouts: {
-              xxl: [...state.layouts.xxl, ...layoutWithType.xxl],
-              xl: [...state.layouts.xl, ...layoutWithType.xl],
-              lg: [...state.layouts.lg, ...layoutWithType.lg],
-              md: [...state.layouts.md, ...layoutWithType.md],
-              sm: [...state.layouts.sm, ...layoutWithType.sm],
-              xs: [...state.layouts.xs, ...layoutWithType.xs],
+            tabLayouts: {
+              ...state.tabLayouts,
+              [currentTab]: {
+                layoutKeys: [...currentTabLayout.layoutKeys, newId],
+                layouts: {
+                  xxl: [...currentTabLayout.layouts.xxl, ...layoutWithType.xxl],
+                  xl: [...currentTabLayout.layouts.xl, ...layoutWithType.xl],
+                  lg: [...currentTabLayout.layouts.lg, ...layoutWithType.lg],
+                  md: [...currentTabLayout.layouts.md, ...layoutWithType.md],
+                  sm: [...currentTabLayout.layouts.sm, ...layoutWithType.sm],
+                  xs: [...currentTabLayout.layouts.xs, ...layoutWithType.xs],
+                },
+              },
             },
           };
         }),

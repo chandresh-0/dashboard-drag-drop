@@ -22,6 +22,8 @@ interface LayoutItem {
   w: number;
   h: number;
   chartType: string;
+  minW: number;
+  minH: number;
 }
 
 interface Layouts {
@@ -38,12 +40,22 @@ interface RefType {
 }
 
 function App() {
-  const { layouts, layoutKeys, updateLayouts, addChart, deleteChart } =
-    useLayoutStore();
+  const {
+    activeTab,
+    tabLayouts,
+    setActiveTab,
+    updateLayouts,
+    addChart,
+    deleteChart,
+  } = useLayoutStore();
   const chartRef = useRef<RefType>(null);
+
+  const currentLayouts = tabLayouts[activeTab].layouts;
+  const currentLayoutKeys = tabLayouts[activeTab].layoutKeys;
+
   const getChartConfig = useMemo(
     () => (id: number) => {
-      const chartType = layouts.xxl.find(
+      const chartType = currentLayouts.xxl.find(
         (res) => res.i === String(id),
       )?.chartType;
       switch (chartType) {
@@ -65,14 +77,11 @@ function App() {
           return ChartsConfig.barOptions;
       }
     },
-    [layouts.xxl],
+    [currentLayouts.xxl],
   );
 
-  const [activeTab, setActiveTab] = useState<Tab | null>(null);
-
   const handleTabChange = (tab: Tab) => {
-    console.log("Selected Tab:", tab);
-    setActiveTab(tab);
+    setActiveTab(tab.id);
   };
 
   const tabs = [
@@ -80,8 +89,9 @@ function App() {
     { name: "NDR", id: "2", value: "ndr" },
     { name: "Billing", id: "3", value: "billing" },
   ];
+
   const addNewCharts = (chartType: string) => {
-    const newId = layouts.xxl.length;
+    const newId = currentLayouts.xxl.length;
     const newLayout = generateResponsiveGridLayout(
       newId,
       chartType,
@@ -108,10 +118,10 @@ function App() {
         <DropdownMenuCheckboxes newChart={addNewCharts} />
       </div>
       <ReactGridLayout
-        layouts={layouts}
+        layouts={currentLayouts}
         onLayoutChange={onLayoutChange}
       >
-        {layoutKeys.map((id) => (
+        {currentLayoutKeys.map((id) => (
           <div
             key={id}
             className={`p-2 relative group rounded-lg shadow-md`}

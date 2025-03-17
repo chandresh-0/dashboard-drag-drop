@@ -11,11 +11,11 @@ export const generateResponsiveGridLayout = (
   id: string,
 ) => {
   return {
-    xxl: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType }],
-    xl: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType }],
-    lg: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType }],
-    md: [{ i: id, x: 0, y: 0, w: 3, h: 3, chartType }],
-    sm: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType }],
-    xs: [{ i: id, x: 0, y: 0, w: 2, h: 3, chartType }],
+    xxl: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType, minW: 2, minH: 2 }],
+    xl: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType, minW: 2, minH: 2 }],
+    lg: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType, minW: 2, minH: 2 }],
+    md: [{ i: id, x: 0, y: 0, w: 3, h: 3, chartType, minW: 2, minH: 2 }],
+    sm: [{ i: id, x: 0, y: 0, w: 4, h: 3, chartType, minW: 2, minH: 2 }],
+    xs: [{ i: id, x: 0, y: 0, w: 2, h: 3, chartType, minW: 2, minH: 2 }],
   };
 };
