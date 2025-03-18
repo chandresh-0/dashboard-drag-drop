@@ -5,9 +5,18 @@ import Echarts from "./Charts/echarts";
 import * as ChartsConfig from "./utils/charts";
 import { GripVertical, X } from "lucide-react";
 import { generateResponsiveGridLayout } from "@/utils/generateLayout";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import DropdownMenuCheckboxes from "./components/DropDownComponent";
 import { useLayoutStore } from "./store/layoutStore";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { DatePickerWithRange } from "./components/DateRangePicker";
+import { Button } from "./components/ui/button";
+import MapContainer from "./components/Map";
 
 interface Tab {
   name: string;
@@ -37,6 +46,7 @@ interface Layouts {
 
 interface RefType {
   resize: () => void;
+  reRender: () => void;
 }
 
 function App() {
@@ -73,6 +83,8 @@ function App() {
           return ChartsConfig.barRaceOption;
         case "heatMap":
           return ChartsConfig.heatMapConfig;
+        case "barRace":
+          return { ...ChartsConfig.barRaceOption, animation: true }; // Ensure animation is enabled
         default:
           return ChartsConfig.barOptions;
       }
@@ -82,6 +94,9 @@ function App() {
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab.id);
+    if (chartRef.current) {
+      chartRef.current.reRender();
+    }
   };
 
   const tabs = [
@@ -105,18 +120,24 @@ function App() {
     updateLayouts(allLayouts);
     if (chartRef.current) {
       chartRef.current.resize();
+      chartRef.current.reRender();
     }
   };
 
   return (
     <>
+      <MapContainer />
       <div className="flex justify-between p-1 bg-white">
         <HeaderTabs
           scrollableTabs={tabs}
           getActiveTab={handleTabChange}
         />
-        <DropdownMenuCheckboxes newChart={addNewCharts} />
+        <div className="flex gap-2 items-center">
+          <DatePickerWithRange />
+          <DropdownMenuCheckboxes newChart={addNewCharts} />
+        </div>
       </div>
+
       <ReactGridLayout
         layouts={currentLayouts}
         onLayoutChange={onLayoutChange}
@@ -132,15 +153,26 @@ function App() {
               </div>
             </div>
             <div className="absolute top-4 right-4 z-[11] flex gap-2">
-              <button
-                onClick={() => deleteChart(String(id))}
-                className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                aria-label="Delete chart"
-              >
-                <X size={16} />
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Button
+                      onClick={() => deleteChart(String(id))}
+                      className="w-fit p-1 h-fit rounded-full bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      aria-label="Delete chart"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete Chart</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
+            {/* <Echarts option={getChartConfig(id)} ref={chartRef} /> */}
             <Echarts
+              key={`${activeTab}-${id}`}
               option={getChartConfig(id)}
               ref={chartRef}
             />

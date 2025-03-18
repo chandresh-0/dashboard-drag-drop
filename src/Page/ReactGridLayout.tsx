@@ -18,6 +18,7 @@ const ReactGridLayout = ({
     <PageLayout
       layouts={layouts}
       onLayoutChange={onLayoutChange}
+      className="w-screen h-screen"
     >
       {children}
     </PageLayout>

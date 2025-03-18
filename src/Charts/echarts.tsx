@@ -4,8 +4,10 @@ import * as echarts from "echarts";
 interface EchartProps {
   option: any;
 }
+
 interface RefType {
   resize: () => void;
+  reRender: () => void;
 }
 
 const EChart = forwardRef<RefType, EchartProps>((props, ref) => {
@@ -13,12 +15,22 @@ const EChart = forwardRef<RefType, EchartProps>((props, ref) => {
   const chartInstance = useRef<echarts.EChartsType | null>(null);
   const { option } = props;
 
-  // ✅ Initialize chart only once
-  useEffect(() => {
+  const initChart = () => {
     if (!chartRef.current) return;
 
-    chartInstance.current = echarts.init(chartRef.current);
+    if (chartInstance.current) {
+      chartInstance.current.dispose(); // Dispose of the old chart instance
+    }
 
+    chartInstance.current = echarts.init(chartRef.current);
+    chartInstance.current.setOption(option, {
+      notMerge: true,
+      lazyUpdate: false,
+    });
+  };
+
+  useEffect(() => {
+    initChart();
     window.addEventListener("resize", handleResize);
 
     return () => {
@@ -27,21 +39,19 @@ const EChart = forwardRef<RefType, EchartProps>((props, ref) => {
     };
   }, []);
 
-  // ✅ Update chart options when `option` changes
   useEffect(() => {
-    if (chartInstance.current) {
-      chartInstance.current.setOption(option);
-    }
+    initChart(); // Ensure a full reset when options change
   }, [option]);
 
-  // ✅ Exposing the `resize` function to the parent
   useImperativeHandle(ref, () => ({
     resize() {
       chartInstance.current?.resize();
     },
+    reRender() {
+      initChart(); // Fully reset the chart
+    },
   }));
 
-  // Resize handler
   const handleResize = () => {
     chartInstance.current?.resize();
   };
