@@ -126,7 +126,6 @@ function App() {
 
   return (
     <>
-      <MapContainer />
       <div className="flex justify-between p-1 bg-white">
         <HeaderTabs
           scrollableTabs={tabs}
